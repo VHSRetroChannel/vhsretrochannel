@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Películas de Archive.org</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos Generales y Reseteo */
+        body {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            padding: 30px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        /* Estilo para la Barra de Búsqueda */
+        #search-bar {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        #search-bar:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        /* Estilos del Botón de Ordenación */
+        .btn-ordenar {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-bottom: 25px;
+        }
+
+        .btn-ordenar:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos de la Tabla */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            border: none;
+            padding: 15px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #34495e;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        img {
+            max-height: 120px;
+            width: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            text-decoration: none;
+            color: #2980b9;
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Catálogo de Películas de Archive.org</h1>
+    
+    <input type="text" id="search-bar" placeholder="Buscar película por título..." onkeyup="filtrarYMostrar()">
+    
+    <button class="btn-ordenar" onclick="ordenarYMostrar(true)">Ordenar por Título (A-Z)</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Portada</th>
+                <th onclick="ordenarYMostrar(true)">Título</th>
+                <th>Enlace</th>
+            </tr>
+        </thead>
+        <tbody id="lista-peliculas">
+            
+</tbody>
+    </table>
+</div>
+
+<script>
+    // 1. LA BASE DE DATOS EN JAVASCRIPT
+    const peliculas = [
+        { 
+            titulo: "El ejercito de las tinieblas (1992)", 
+            url_portada: "https://pics.filmaffinity.com/army_of_darkness_evil_dead_3_aka_the_evil_dead_3_army_of_darkness-684900546-large.jpg", 
+            url_archive: "https://archive.org/details/el-ejercito-de-las-tinieblas-1993-vhs" 
+        },
+        { 
+            titulo: "Cujo (1983)", 
+            url_portada: "https://pics.filmaffinity.com/cujo-820466655-large.jpg", 
+            url_archive: "https://archive.org/details/cujo-1983-vhs" 
+        },
+        { 
+            titulo: "Depredador 2 (1990)", 
+            url_portada: "https://pics.filmaffinity.com/predator_2-671319597-large.jpg", 
+            url_archive: "https://archive.org/details/depredador-ii-vhs-copia" 
+        },
+        { 
+            titulo: "De repente, un extraño (1990)", 
+            url_portada: "https://pics.filmaffinity.com/pacific_heights-512345242-large.jpg", 
+            url_archive: "https://archive.org/details/de-repente-un-extran-o-copia-film" 
+        },
+        { 
+            titulo: "Frankenstein de Mary Shelley (1994)", 
+            url_portada: "https://pics.filmaffinity.com/mary_shelley_s_frankenstein-843073795-large.jpg", 
+            url_archive: "https://archive.org/details/frankenstein-1994-vhs" 
+        },
+ 	 { 
+            titulo: "Noche de paz, noche de muerte (1984)", 
+            url_portada: "https://pics.filmaffinity.com/silent_night_deadly_night-427956572-large.jpg", 
+            url_archive: "https://archive.org/details/noche-de-paz-noche-de-muerte-1984" 
+        }
+    ];
+    
+    /**
+     * Filtra las películas según el texto de búsqueda y llama a mostrarPeliculas.
+     */
+    function filtrarYMostrar() {
+        const busqueda = document.getElementById('search-bar').value.toLowerCase();
+        
+        // FILTRAR
+        const peliculasFiltradas = peliculas.filter(pelicula => {
+            return pelicula.titulo.toLowerCase().includes(busqueda);
+        });
+
+        // MOSTRAR
+        mostrarPeliculas(peliculasFiltradas);
+    }
+
+    /**
+     * Función principal para ordenar y/o mostrar las películas.
+     * @param {boolean} ordenarAhora - Indica si se debe ordenar antes de mostrar.
+     */
+    function ordenarYMostrar(ordenarAhora = false) {
+        if (ordenarAhora) {
+            // Ordena el array de películas alfabéticamente por título
+            peliculas.sort((a, b) => {
+                const tituloA = a.titulo.toUpperCase();
+                const tituloB = b.titulo.toUpperCase();
+                if (tituloA < tituloB) return -1;
+                if (tituloA > tituloB) return 1;
+                return 0; 
+            });
+            document.querySelector('.btn-ordenar').textContent = "Lista Ordenada (A-Z)";
+        }
+        
+        // Muestra las películas (llama a filtrar)
+        filtrarYMostrar(); 
+    }
+    
+    /**
+     * Función que renderiza (dibuja) la lista de películas en la tabla.
+     * @param {Array} lista - La lista de películas a dibujar.
+     */
+    function mostrarPeliculas(lista) {
+        const cuerpoTabla = document.getElementById('lista-peliculas');
+        cuerpoTabla.innerHTML = ''; // Limpia el contenido
+
+        // Crea las filas de la tabla con los datos
+        lista.forEach(pelicula => {
+            const fila = cuerpoTabla.insertRow();
+            
+            // Columna 1: Portada
+            fila.insertCell().innerHTML = `<img src="${pelicula.url_portada}" alt="Portada de ${pelicula.titulo}">`;
+            
+            // Columna 2: Título
+            fila.insertCell().textContent = pelicula.titulo;
+            
+            // Columna 3: Enlace
+            fila.insertCell().innerHTML = `<a href="${pelicula.url_archive}" target="_blank">Ver en Archive.org</a>`;
+        });
+        
+        // Si la lista está vacía, muestra un mensaje
+        if (lista.length === 0) {
+            const filaVacia = cuerpoTabla.insertRow();
+            filaVacia.insertCell().colSpan = 3;
+            filaVacia.cells[0].textContent = "No se encontraron películas con ese título.";
+            filaVacia.cells[0].style.textAlign = 'center';
+            filaVacia.cells[0].style.padding = '20px';
+        }
+    }
+
+
+    // Llama a la función al cargar la página para mostrar los datos
+    ordenarYMostrar(); 
+</script>
+
+</body>
+</html>
